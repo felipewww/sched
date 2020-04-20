@@ -1,0 +1,46 @@
+{
+  "name": "paylite",
+  "version": "1.0.0",
+  "description": "A powerfull mkt tool",
+  "main": "app.js",
+  "scripts": {
+    "test:commit": "env NODE_ENV=test CI=true jest --colors --passWithNoTests",
+    "test:watch": "npm run test:commit -- --coverage=false --watch",
+    "test:watch-silent": "npm run test:watch -- --silent --noStackTrace",
+    "dev": "tsc -w --preserveWatchOutput & nodemon dist/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felipewww/log-parser.git"
+  },
+  "author": "@felipewww",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/felipewww/log-parser/issues"
+  },
+  "homepage": "https://github.com/felipewww/log-parser#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "knex": "^0.20.9",
+    "module-alias": "^2.2.2",
+    "mongodb": "^3.5.6",
+    "mysql2": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/colors": "^1.2.1",
+    "@types/cors": "^2.8.6",
+    "@types/dotenv": "^8.2.0",
+    "@types/express": "^4.17.2",
+    "@types/jest": "^25.1.2",
+    "@types/jsonwebtoken": "^8.3.8",
+    "@types/module-alias": "^2.0.0",
+    "@types/mongodb": "^3.5.8",
+    "@types/node": "^13.7.0",
+    "colors": "^1.4.0",
+    "jest": "^25.1.0",
+    "ts-jest": "^25.2.0",
+    "typescript": "^3.7.5"
+  }
+}
