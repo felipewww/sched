@@ -1,5 +1,5 @@
 import {TaskEntity} from "@Domain/Job/Task/TaskEntity";
-import {JobEntity} from "@Domain/Job/Job/JobEntity";
+import {Job} from "@Domain/Job/Job/Job";
 
 export class WikiChangeStatusTask extends TaskEntity {
 
@@ -10,7 +10,7 @@ export class WikiChangeStatusTask extends TaskEntity {
         super();
     }
 
-    doTask(job: JobEntity) {
+    doTask(job: Job) {
         console.log('Executing task '+this.name)
     }
 }

@@ -1,10 +1,10 @@
-import {JobEntity} from "@Domain/Job/Job/JobEntity";
-import {QueueEntity} from "@Domain/Job/Queue/QueueEntity";
+import {Job} from "@Domain/Job/Job/Job";
+import {Queue} from "@Domain/Job/Queue/Queue";
 
 export abstract class Subscriber<T> {
-    public abstract call(job: JobEntity): T
+    public abstract call(job: Job): T
 
-    public subscribe(queue: QueueEntity): void {
+    public subscribe(queue: Queue): void {
         queue.subscribe(this);
     };
 }

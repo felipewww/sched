@@ -1,5 +1,5 @@
-import {JobEntity} from "@Domain/Job/Job/JobEntity";
+import {Job} from "@Domain/Job/Job/Job";
 
 export abstract class TaskEntity {
-    public abstract doTask(job: JobEntity): any;
+    public abstract doTask(job: Job): any;
 }

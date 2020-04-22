@@ -8,5 +8,5 @@ export abstract class Presenter {
 
     }
 
-    public abstract handle(): Promise<HttpResponse>;
+    public abstract async handle(): Promise<HttpResponse>;
 }

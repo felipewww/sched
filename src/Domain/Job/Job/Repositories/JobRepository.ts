@@ -1,5 +1,5 @@
 import {Mongo, MongoJob} from "@Data/Source/Mongo/Mongo";
-import {JobEntity} from "@Domain/Job/Job/JobEntity";
+import {Job} from "@Domain/Job/Job/Job";
 import {IJobRaw} from "@Data/Source/Jobs/Contracts";
 
 export class JobRepository {
@@ -9,7 +9,7 @@ export class JobRepository {
 
     }
 
-    async store(job: JobEntity) {
+    async store(job: Job) {
         const toRaw: IJobRaw = {
             scheduledTo: job.scheduledTo.toISOString(),
             scheduledAt: job.scheduledAt.toISOString(),
@@ -20,18 +20,24 @@ export class JobRepository {
     }
 
 
-    async findNext(): Promise<Array<JobEntity>> {
+    async findNext(): Promise<Array<Job>> {
 
         const jobRaw: Array<IJobRaw> = await this.model.findNext();
 
-        let result: Array<JobEntity> = [];
+        let result: Array<Job> = [];
 
         jobRaw.map(jobRaw => {
 
-            let job: JobEntity = JobEntity.create({
-                scheduledTo: jobRaw.scheduledTo,
-                params: jobRaw.params
-            }, jobRaw.scheduledAt, jobRaw._id);
+            // let job: Job = Job.create({
+            //     scheduledTo: jobRaw.scheduledTo,
+            //     params: jobRaw.params
+            // }, jobRaw.scheduledAt, jobRaw._id);
+            const job = Job.parse(
+                jobRaw.scheduledTo,
+                jobRaw.scheduledAt,
+                jobRaw.params,
+                jobRaw._id
+            )
 
             result.push(job);
         })

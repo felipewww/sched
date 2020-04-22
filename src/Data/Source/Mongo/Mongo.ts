@@ -51,7 +51,7 @@ export abstract class Mongo {
     }
 }
 
-export abstract class MongoJob extends Mongo {
+export class MongoJob extends Mongo {
 
     // protected abstract collectionPrefix: string;
     //
@@ -61,15 +61,18 @@ export abstract class MongoJob extends Mongo {
     //     finished: {name: '' },
     // }
 
-    constructor() {
+    constructor(
+        protected collectionPrefix: string
+    ) {
         super();
-        // console.log(this.collectionPrefix);
     }
 
     async store(data: IJobRaw) {
         const conn = await this.db();
-        const q =
-            conn.collection('wiki:tasks').insertOne(data)
+
+        const q = conn
+            .collection(`${this.collectionPrefix}:jobs`)
+            .insertOne(data)
 
         return this.exec(q);
     }

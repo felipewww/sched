@@ -1,6 +1,6 @@
 import {IJobReq} from "@Domain/Job/Job/Contracts";
 import Timeout = NodeJS.Timeout;
-import {QueueEntity} from "@Domain/Job/Queue/QueueEntity";
+import {Queue} from "@Domain/Job/Queue/Queue";
 import {TaskEntity} from "@Domain/Job/Task/TaskEntity";
 
 export enum EJobStatus {
@@ -11,7 +11,7 @@ export enum EJobStatus {
     Scheduled = 4
 }
 
-export class JobEntity {
+export class Job {
 
     // todo - retries no try catch alterando _status corretmaente
     private _timeOut: Timeout;
@@ -37,7 +37,7 @@ export class JobEntity {
      * Create from Request Object
      * @param reqObj
      */
-    public static create(reqObj: IJobReq, _scheduledAt?: string, id?: any) {
+    public static _create(reqObj: IJobReq, _scheduledAt?: string, id?: any) {
         let scheduledAt: Date;
         if (!_scheduledAt) {
             scheduledAt = new Date();
@@ -45,11 +45,46 @@ export class JobEntity {
             scheduledAt = new Date(_scheduledAt);
         }
 
-        return new JobEntity(
+        return new Job(
             new Date(reqObj.scheduledTo),
             new Date(scheduledAt),
             reqObj.params,
             id
+        );
+    }
+
+    /**
+     * Creates a new Job Entity, without DB reference
+     * @param _scheduledTo
+     * @param params
+     */
+    public static create(_scheduledTo: string, params: { [key:string]: any }) {
+        return new Job(
+            new Date(_scheduledTo),
+            new Date(),
+            params,
+            null
+        );
+    }
+
+    /**
+     * Parses Job from Mongo result
+     * @param _scheduledTo
+     * @param _scheduledAt
+     * @param _params
+     * @param _id
+     */
+    public static parse(
+        _scheduledTo: string,
+        _scheduledAt: string,
+        _params: { [key:string]: any },
+        _id: any,
+    ) {
+        return new Job(
+            new Date(_scheduledTo),
+            new Date(_scheduledAt),
+            _params,
+            _id
         );
     }
 
@@ -84,7 +119,7 @@ export class JobEntity {
     /**
      * Only a Queue can schedule a Job
      */
-    public schedule(queue: QueueEntity) {
+    public schedule(queue: Queue) {
         this._status = EJobStatus.Scheduled
         this._timeOut = setTimeout(async () => {
             await this.execute()
@@ -92,7 +127,7 @@ export class JobEntity {
         }, this.delay())
     }
 
-    public cancel(queue: QueueEntity) {
+    public cancel(queue: Queue) {
 
     }
 
