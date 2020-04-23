@@ -1,4 +1,3 @@
-import {Mongo} from "@Data/Source/Mongo/Mongo";
 import {Job} from "@Domain/Job/Job/Job";
 import {IJobRaw} from "@Data/Source/Jobs/Contracts";
 import {MongoJob} from "@Data/Source/Mongo/MongoJob";
@@ -39,7 +38,8 @@ export class JobRepository {
 
     async findNext(): Promise<Array<Job>> {
 
-        const jobRaw: Array<IJobRaw> = await this.model.findNext();
+        // const jobRaw: Array<IJobRaw> = await this.model.findNext();
+        const jobRaw: Array<IJobRaw> = [];
 
         let result: Array<Job> = [];
 

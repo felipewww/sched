@@ -1,5 +1,4 @@
 import {Job} from "@Domain/Job/Job/Job";
-import {TaskEntity} from "@Domain/Job/Task/TaskEntity";
 import {Subscriber} from "@Domain/Job/Queue/Subscriber";
 
 export class Queue {

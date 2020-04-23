@@ -41,16 +41,19 @@ export class WikiChangeStatusQueue {
 
         const wikiProducer = ProducersSingletonInstance.create(
             'wikiActivationProducer',
-            { value: 2, unity: 'minutes' },
+            // { value: 3, unity: 'minutes' },
+            { value: 10, unity: 'seconds' },
             wikiStatusQueueInstance,
             [task1, task2, task3]
         )
 
+        // wikiProducer.avoidWatchNullCollection = false;
+
         wikiProducer.init();
 
-        // Simulando Request Http no Presenter
-        setTimeout(async function () {
-            const wikiProducer = ProducersSingletonInstance.getById('wikiActivationProducer')
+        // const wikiProducer = ProducersSingletonInstance.getById('wikiActivationProducer')
+
+        async function addJobFake(date: string) {
 
             const params = {
                 id: 17685,
@@ -58,16 +61,18 @@ export class WikiChangeStatusQueue {
                 teamId: 1,
             }
 
-            const job = Job.create('2020-04-23 11:14:01', params)
+            const job = Job.create(date, params)
             job.tasks = [task1, task2, task3]
+            const jobAdded1 = await wikiProducer.addJob(job);
+        }
+        // Simulando Request Http no Presenter
+        setTimeout(async function () {
+            addJobFake('2020-04-23 11:14:01');
+        }, 1000)
 
-            const jobAdded = await wikiProducer.addJob(job);
-            console.log('jobAdded!!!!!!!!')
-            console.log(jobAdded)
-            // console.log(new Date("2020-04-23T12:14:01.000Z"))
-            // console.log(new Date("2020-04-23 12:14:01").toISOString())
-
-            // return HttpResponseFactory.Success({ status: true }, 200)
-        }, 5000)
+        setTimeout(async function () {
+            // wikiProducer.avoidWatchNullCollection = false;
+            addJobFake('2020-04-23 13:28:01');
+        }, 6000)
     }
 }

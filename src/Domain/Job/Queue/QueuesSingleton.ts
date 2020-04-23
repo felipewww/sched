@@ -61,10 +61,24 @@ class ProducersSingleton {
     }
 }
 
+export class JOBDevTracker {
+    public active: boolean = false
+
+    log(message: any) {
+        if (this.active) {
+            console.log('\n');
+            console.log('   JobDebugger dev log   '.bgCyan.black.bold);
+            console.log(message);
+        }
+    }
+}
+
 const QueuesSingletonInstance = new QueuesSingleton();
 const ProducersSingletonInstance = new ProducersSingleton();
+const JobDebugger = new JOBDevTracker();
 
 export {
     QueuesSingletonInstance,
-    ProducersSingletonInstance
+    ProducersSingletonInstance,
+    JobDebugger
 }

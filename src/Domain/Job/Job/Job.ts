@@ -2,6 +2,7 @@ import {IJobReq} from "@Domain/Job/Job/Contracts";
 import Timeout = NodeJS.Timeout;
 import {Queue} from "@Domain/Job/Queue/Queue";
 import {TaskEntity} from "@Domain/Job/Task/TaskEntity";
+import {JobDebugger} from "@Domain/Job/Queue/QueuesSingleton";
 
 export enum EJobStatus {
     Success = 0,
@@ -102,7 +103,13 @@ export class Job {
             })
             this._status = EJobStatus.Running;
             this._status = EJobStatus.Success;
+
+            JobDebugger.log(`job executed with success`.green.bold)
+            JobDebugger.log(this)
         } catch (e) {
+
+            JobDebugger.log(`job executed with error`.red.bold)
+            JobDebugger.log(this)
 
             if (this.tries.count < this.tries.max) {
                 this.tries.count++;
@@ -120,6 +127,8 @@ export class Job {
      * Only a Queue can schedule a Job
      */
     public schedule(queue: Queue) {
+        JobDebugger.log(`job scheduled`.green.bold)
+        JobDebugger.log(this)
         this._status = EJobStatus.Scheduled
         this._timeOut = setTimeout(async () => {
             await this.execute()
