@@ -1,9 +1,7 @@
 import {ProducersSingletonInstance, QueuesSingletonInstance} from "@Domain/Job/Queue/QueuesSingleton";
 import {WikiStatusSubscriber} from "@Domain/Wiki/WikiChangeStatusSubscriber";
 import {WikiChangeStatusTask} from "@Domain/Wiki/WikiChangeStatusTask";
-import {PostStatusChange} from "@Presentation/Presenters/wiki/PostStatusChange";
 import {Job} from "@Domain/Job/Job/Job";
-import {HttpResponseFactory} from "@Presentation/Utils/HttpResponse/HttpResponseFactory";
 
 export class WikiChangeStatusQueue {
     constructor() {
@@ -43,7 +41,7 @@ export class WikiChangeStatusQueue {
 
         const wikiProducer = ProducersSingletonInstance.create(
             'wikiActivationProducer',
-            { value: 60, unity: 'seconds' },
+            { value: 2, unity: 'minutes' },
             wikiStatusQueueInstance,
             [task1, task2, task3]
         )
@@ -60,9 +58,14 @@ export class WikiChangeStatusQueue {
                 teamId: 1,
             }
 
-            const job = Job.create('2020-04-22 20:20', params)
+            const job = Job.create('2020-04-23 11:14:01', params)
+            job.tasks = [task1, task2, task3]
 
-            await wikiProducer.addJob(job);
+            const jobAdded = await wikiProducer.addJob(job);
+            console.log('jobAdded!!!!!!!!')
+            console.log(jobAdded)
+            // console.log(new Date("2020-04-23T12:14:01.000Z"))
+            // console.log(new Date("2020-04-23 12:14:01").toISOString())
 
             // return HttpResponseFactory.Success({ status: true }, 200)
         }, 5000)

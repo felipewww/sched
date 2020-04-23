@@ -1,114 +1,57 @@
 import {Db, MongoClient} from "mongodb";
-import {IJobRaw} from "@Data/Source/Jobs/Contracts";
 
 export abstract class Mongo {
 
-    protected client: MongoClient;
+    protected connection: MongoClient;
 
-    constructor() {
-        const user = encodeURIComponent(process.env.MONGO_USER);
-        const pass = encodeURIComponent(process.env.MONGO_PASS);
+    protected abstract dbUser: string;
+    protected abstract dbPass: string;
+    protected abstract dbName: string;
+    protected abstract dbHost: string;
+    protected abstract dbPort: string;
 
-        const url = `mongodb://${user}:${pass}@${process.env.MONGO_HOST}:${process.env.MONGO_PORT}`;
-        // const url = `mongodb://root:${pass}@${process.env.MONGO_HOST}:${process.env.MONGO_PORT}`;
+    protected connectionURL: string;
 
-        this.client = new MongoClient(url);
+    public connectionSettings(
+        dbUser: string,
+        dbPass: string,
+        dbName: string,
+        dbHost: string,
+        dbPort: string,
+    ) {
+        this.dbUser = dbUser;
+        this.dbPass = dbPass;
+        this.dbName = dbName;
+        this.dbHost = dbHost;
+        this.dbPort = dbPort;
+
+        return this;
     }
 
     protected async db(): Promise<Db> {
-        return (await this.client.connect()).db('tasks')
-    }
+        const user = encodeURIComponent(this.dbUser);
+        const pass = encodeURIComponent(this.dbPass);
 
-    protected async _db(): Promise<Db> {
-        return new Promise((resolve, reject) => {
+        this.connectionURL = `mongodb://${user}:${pass}@${this.dbHost}:${this.dbPort}`;
 
-            this.client.connect()
-                .then((client) => {
-                    resolve(client.db('tasks'));
-                })
-                .catch(err => {
-                    console.log('Erro while connect to Mongodb ON CATCH!'.bgRed.white.bold)
-                    console.log(err);
-                    reject();
-                })
-        })
+        const client = new MongoClient(this.connectionURL, { useUnifiedTopology: true });
+        this.connection = await client.connect();
+
+        return this.connection.db(this.dbName)
     }
 
     protected async exec(query: Promise<any>): Promise<any> {
         return new Promise((resolve, reject) => {
-            // resolve();
-
             query
                 .then(res => {
                     resolve(res);
-                    this.client.close();
                 })
-                .catch(error => {
-                    reject(error)
-                    this.client.close();
+                .catch(res => {
+                    reject(res);
+                })
+                .finally(() => {
+                    this.connection.close();
                 })
         })
-    }
-}
-
-export class MongoJob extends Mongo {
-
-    // protected abstract collectionPrefix: string;
-    //
-    // protected collection: any = {
-    //     jobs: { name: '' },
-    //     failed: {name: '' },
-    //     finished: {name: '' },
-    // }
-
-    constructor(
-        protected collectionPrefix: string
-    ) {
-        super();
-    }
-
-    async store(data: IJobRaw) {
-        const conn = await this.db();
-
-        const q = conn
-            .collection(`${this.collectionPrefix}:jobs`)
-            .insertOne(data)
-
-        return this.exec(q);
-    }
-
-    async findNext(): Promise<Array<IJobRaw>> {
-        return [
-            {
-                _id: 1,
-                scheduledTo: '2020-04-20 14:58:01',
-                scheduledAt: '2020-04-20 11:37:01',
-                params: {},
-            },
-            {
-                _id: 2,
-                scheduledTo: '2020-04-20 14:58:01',
-                scheduledAt: '2020-04-20 11:37:01',
-                params: {},
-            },
-            // {
-            //     _id: 3,
-            //     scheduledTo: '2020-04-20 14:58:01',
-            //     scheduledAt: '2020-04-20 11:37:01',
-            //     params: {},
-            // },
-            // {
-            //     _id: 4,
-            //     scheduledTo: '2020-04-20 14:58:01',
-            //     scheduledAt: '2020-04-20 11:37:01',
-            //     params: {},
-            // },
-            // {
-            //     _id: 5,
-            //     scheduledTo: '2020-04-20 14:58:01',
-            //     scheduledAt: '2020-04-20 11:37:01',
-            //     params: {},
-            // },
-        ]
     }
 }

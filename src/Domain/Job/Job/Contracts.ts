@@ -5,5 +5,5 @@ export interface IJobReq {
 
 export interface ITimeSpec {
     value: number;
-    unity: "milliseconds"|"seconds"|"minutes"|"hours"|"days"
+    unity: "milliseconds"|"seconds"|"minutes"|"hours"
 }

@@ -1,6 +1,7 @@
-import {Mongo, MongoJob} from "@Data/Source/Mongo/Mongo";
+import {Mongo} from "@Data/Source/Mongo/Mongo";
 import {Job} from "@Domain/Job/Job/Job";
 import {IJobRaw} from "@Data/Source/Jobs/Contracts";
+import {MongoJob} from "@Data/Source/Mongo/MongoJob";
 
 export class JobRepository {
     constructor(
@@ -9,14 +10,30 @@ export class JobRepository {
 
     }
 
-    async store(job: Job) {
-        const toRaw: IJobRaw = {
-            scheduledTo: job.scheduledTo.toISOString(),
-            scheduledAt: job.scheduledAt.toISOString(),
-            params: job.params,
-        }
+    async store(job: Job): Promise<Job> {
 
-        return this.model.store(toRaw);
+        return new Promise((resolve, reject) => {
+            const toRaw: IJobRaw = {
+                _id: null,
+                scheduledTo: job.scheduledTo.toISOString(),
+                scheduledAt: job.scheduledAt.toISOString(),
+                params: job.params,
+            }
+
+
+            this.model.store(toRaw)
+                .then(result => {
+                    const jobRaw = result.ops[0];
+                    const job = Job.parse(
+                        jobRaw.scheduledTo,
+                        jobRaw.scheduledAt,
+                        jobRaw.params,
+                        jobRaw._id
+                    )
+
+                    resolve(job);
+                })
+        })
     }
 
 
@@ -27,11 +44,6 @@ export class JobRepository {
         let result: Array<Job> = [];
 
         jobRaw.map(jobRaw => {
-
-            // let job: Job = Job.create({
-            //     scheduledTo: jobRaw.scheduledTo,
-            //     params: jobRaw.params
-            // }, jobRaw.scheduledAt, jobRaw._id);
             const job = Job.parse(
                 jobRaw.scheduledTo,
                 jobRaw.scheduledAt,

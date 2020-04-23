@@ -10,7 +10,7 @@ export class WikiChangeStatusTask extends TaskEntity {
         super();
     }
 
-    doTask(job: Job) {
+    execute(job: Job) {
         console.log('Executing task '+this.name)
     }
 }

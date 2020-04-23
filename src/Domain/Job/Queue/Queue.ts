@@ -7,18 +7,17 @@ export class Queue {
     private readonly _scheduledJobs: Array<Job> = []
     protected subscribers: Array<Subscriber<any>> = [];
 
-    addJob(job: Job|Array<Job>, tasks: Array<TaskEntity>) {
+    addJob(job: Job|Array<Job>) {
         if (Array.isArray(job)) {
             job.forEach(job => {
-                this.__addJob(job, tasks);
+                this.__addJob(job);
             })
         } else {
-            this.__addJob(job, tasks);
+            this.__addJob(job);
         }
     }
 
-    private __addJob(job: Job, tasks: Array<TaskEntity>) {
-        job.tasks = tasks;
+    private __addJob(job: Job) {
         job.schedule(this);
         this._scheduledJobs.push(job);
     }

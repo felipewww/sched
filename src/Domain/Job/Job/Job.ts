@@ -13,10 +13,10 @@ export enum EJobStatus {
 
 export class Job {
 
-    // todo - retries no try catch alterando _status corretmaente
+    public tasks: Array<TaskEntity> = [];
+
     private _timeOut: Timeout;
     private _status: EJobStatus = EJobStatus.Created;
-    private _tasks: Array<TaskEntity> = [];
     private _error: Error;
 
     private tries: { max: number, count: number } = {
@@ -97,8 +97,8 @@ export class Job {
 
     async execute(): Promise<boolean> {
         try {
-            this._tasks.forEach((task: TaskEntity) => {
-                task.doTask(this);
+            this.tasks.forEach((task: TaskEntity) => {
+                task.execute(this);
             })
             this._status = EJobStatus.Running;
             this._status = EJobStatus.Success;
@@ -155,7 +155,7 @@ export class Job {
         return this._error;
     }
 
-    set tasks(tasks: Array<TaskEntity>) {
-        this._tasks = tasks;
-    }
+    // set tasks(tasks: Array<TaskEntity>) {
+    //     this.tasks = tasks;
+    // }
 }

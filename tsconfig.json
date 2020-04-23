@@ -9,6 +9,7 @@
     "inlineSourceMap": true,
     "outDir": "dist",
     "baseUrl": "src",
+    "lib": ["esnext"],
     "paths": {
       "@Presentation/*": ["Presentation/*"],
       "@Domain/*": ["Domain/*"],

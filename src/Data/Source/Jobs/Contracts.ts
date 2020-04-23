@@ -1,5 +1,5 @@
 export interface IJobRaw {
-    _id?: any;
+    _id: any;
     scheduledTo: string,
     scheduledAt: string,
     params: { [key: string]: any }
