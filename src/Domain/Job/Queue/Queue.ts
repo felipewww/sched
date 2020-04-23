@@ -6,6 +6,10 @@ export class Queue {
     private readonly _scheduledJobs: Array<Job> = []
     protected subscribers: Array<Subscriber<any>> = [];
 
+    /**
+     * Schedule a Job in memory using setTimeout
+     * @param job
+     */
     addJob(job: Job|Array<Job>) {
         if (Array.isArray(job)) {
             job.forEach(job => {
@@ -21,6 +25,10 @@ export class Queue {
         this._scheduledJobs.push(job);
     }
 
+    /**
+     * Dispatch event to all Subscribers when Job finishes it's execution
+     * @param job
+     */
     jobExecuted(job: Job) {
 
         this.subscribers.forEach(subscriber => {

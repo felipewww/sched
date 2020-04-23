@@ -163,8 +163,4 @@ export class Job {
     get error() {
         return this._error;
     }
-
-    // set tasks(tasks: Array<TaskEntity>) {
-    //     this.tasks = tasks;
-    // }
 }

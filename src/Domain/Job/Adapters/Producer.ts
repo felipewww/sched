@@ -27,6 +27,12 @@ export class Producer {
     protected _refreshTimeParsed = TimeSpecParser.toMilliseconds(this.refreshTime);
     protected _repo: JobRepository;
 
+    /**
+     * If last DB search retrieved no result and this option is true, this producer will clear timeout
+     * avoiding unnecessary DB searches and timeouts.
+     *
+     * The timeout will recovered after addJob store some job in DB collection
+     */
     public avoidWatchNullCollection: boolean = true;
 
     constructor(
@@ -41,21 +47,31 @@ export class Producer {
         this._repo = new JobRepository(model);
     }
 
+    /**
+     * Start a producer for DB searches based on timeout and queue feed
+     */
     public async init() {
         if (!this._initialized) {
             this._initialized = true;
             await this.findJobs();
         }
-        
+
         return this;
     }
 
+    /**
+     * recursion in memory by
+     */
     private setTimeout() {
         this._timeOut = setTimeout(() => {
             this.findJobs();
         }, this._refreshTimeParsed);
     }
 
+    /**
+     * Find Jobs in database, parse these jobs to code entities (Job with Task), feed the queue with these jobs
+     * and set the recursion (timeout)
+     */
     private async findJobs() {
         const jobs: Array<Job> = await this._repo.findNext();
 
