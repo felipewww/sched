@@ -1,6 +1,6 @@
 export interface IJobRaw {
     _id: any;
-    scheduledTo: string,
-    scheduledAt: string,
+    scheduledTo: Date,
+    scheduledAt: Date,
     params: { [key: string]: any }
 }

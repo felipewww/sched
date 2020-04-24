@@ -1,8 +1,14 @@
 import {IJobRaw} from "@Data/Source/Jobs/Contracts";
-import {InsertOneWriteOpResult} from "mongodb";
+import {ObjectID, InsertOneWriteOpResult} from "mongodb";
 import {Mongo} from "@Data/Source/Mongo/Mongo";
 
 export class MongoJob extends Mongo {
+
+    protected collectionJobsName: string = ':jobs';
+    protected collectionCancelledJobsName: string = ':cancelled';
+    protected collectionFinishedJobsName: string = ':finished';
+    protected collectionFailedJobsName: string = ':failed';
+
     protected dbUser = process.env.MONGO_USER;
     protected dbPass = process.env.MONGO_PASS;
     protected dbName = 'tasks';
@@ -13,6 +19,36 @@ export class MongoJob extends Mongo {
         protected collectionPrefix: string
     ) {
         super();
+        this.setCollectionsNames();
+    }
+
+    private setCollectionsNames() {
+
+        this.collectionJobsName = this.collectionPrefix+this.collectionJobsName;
+        this.collectionCancelledJobsName = this.collectionPrefix+this.collectionCancelledJobsName;
+        this.collectionFinishedJobsName = this.collectionPrefix+this.collectionFinishedJobsName;
+        this.collectionFailedJobsName = this.collectionPrefix+this.collectionFailedJobsName;
+    }
+
+    async cancel(jobId: any) {
+        const conn = await this.db();
+
+        const jobRawToMove = await conn.collection(this.collectionJobsName)
+            .findOne({ "_id": new ObjectID(jobId) })
+
+        const promiseInsert = conn
+            .collection(this.collectionCancelledJobsName)
+            .insertOne(jobRawToMove)
+            .then();
+
+        const promiseDelete = conn.collection(this.collectionJobsName)
+            .deleteOne({ "_id": new ObjectID(jobId) })
+            .then()
+
+        Promise.all([promiseInsert, promiseDelete])
+            .finally(() => {
+                this.connection.close();
+            })
     }
 
     async store(data: IJobRaw): Promise<InsertOneWriteOpResult<IJobRaw>> {
@@ -25,38 +61,26 @@ export class MongoJob extends Mongo {
         return this.exec(q);
     }
 
-    async findNext(): Promise<Array<IJobRaw>> {
-        return [
-            {
-                _id: 1,
-                scheduledTo: '2020-04-20 14:58:01',
-                scheduledAt: '2020-04-20 11:37:01',
-                params: {},
-            },
-            {
-                _id: 2,
-                scheduledTo: '2020-04-20 14:58:01',
-                scheduledAt: '2020-04-20 11:37:01',
-                params: {},
-            },
-            // {
-            //     _id: 3,
-            //     scheduledTo: '2020-04-20 14:58:01',
-            //     scheduledAt: '2020-04-20 11:37:01',
-            //     params: {},
-            // },
-            // {
-            //     _id: 4,
-            //     scheduledTo: '2020-04-20 14:58:01',
-            //     scheduledAt: '2020-04-20 11:37:01',
-            //     params: {},
-            // },
-            // {
-            //     _id: 5,
-            //     scheduledTo: '2020-04-20 14:58:01',
-            //     scheduledAt: '2020-04-20 11:37:01',
-            //     params: {},
-            // },
-        ]
+    async findById(id: string): Promise<IJobRaw> {
+        const conn = await this.db();
+
+        const q = conn.collection(this.collectionJobsName)
+            .findOne({ "_id": new ObjectID(id) })
+
+        return this.exec(q);
+    }
+
+    async findNext(maxDate: Date): Promise<Array<IJobRaw>> {
+
+        const conn = await this.db();
+
+        const q = conn.collection(this.collectionJobsName)
+            .find({
+                "scheduledTo": {
+                    "$lte": maxDate
+                }
+            }).toArray()
+
+        return this.exec(q);
     }
 }

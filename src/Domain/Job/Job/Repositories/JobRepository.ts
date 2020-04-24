@@ -10,50 +10,47 @@ export class JobRepository {
     }
 
     async store(job: Job): Promise<Job> {
-
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const toRaw: IJobRaw = {
                 _id: null,
-                scheduledTo: job.scheduledTo.toISOString(),
-                scheduledAt: job.scheduledAt.toISOString(),
+                scheduledTo: job.scheduledTo,
+                scheduledAt: job.scheduledAt,
                 params: job.params,
             }
 
 
             this.model.store(toRaw)
                 .then(result => {
-                    const jobRaw = result.ops[0];
-                    const job = Job.parse(
-                        jobRaw.scheduledTo,
-                        jobRaw.scheduledAt,
-                        jobRaw.params,
-                        jobRaw._id
-                    )
-
-                    resolve(job);
+                    const jobParsed = Job.parse(result.ops[0]);
+                    resolve(jobParsed);
                 })
         })
     }
 
+    async findById(id: string): Promise<Job> {
+        let job: Job;
+        let jobRaw = await this.model.findById(id);
 
-    async findNext(): Promise<Array<Job>> {
+        job = Job.parse(jobRaw);
 
-        // const jobRaw: Array<IJobRaw> = await this.model.findNext();
-        const jobRaw: Array<IJobRaw> = [];
+        return job;
+    }
+
+    async findNext(maxDate: Date): Promise<Array<Job>> {
+
+        const jobRaw: Array<IJobRaw> = await this.model.findNext(maxDate);
 
         let result: Array<Job> = [];
 
         jobRaw.map(jobRaw => {
-            const job = Job.parse(
-                jobRaw.scheduledTo,
-                jobRaw.scheduledAt,
-                jobRaw.params,
-                jobRaw._id
-            )
-
+            const job = Job.parse(jobRaw);
             result.push(job);
         })
 
         return result;
+    }
+
+    async cancel(jobId: any) {
+        return this.model.cancel(jobId);
     }
 }

@@ -1,6 +1,11 @@
 import {Job} from "@Domain/Job/Job/Job";
 import {Subscriber} from "@Domain/Job/Queue/Subscriber";
 
+export enum EQueueEventType {
+    JobExecuted = 0,
+    JobCancelled = 1,
+}
+
 export class Queue {
 
     private readonly _scheduledJobs: Array<Job> = []
@@ -20,6 +25,22 @@ export class Queue {
         }
     }
 
+    removeJobById(id :string) {
+        for(let job of this._scheduledJobs) {
+            if (job.id === id) {
+                job.cancel();
+                this.emit(job, EQueueEventType.JobCancelled);
+                break;
+            }
+        }
+    }
+
+    protected emit(job: Job, event: EQueueEventType) {
+        this.subscribers.forEach(subscriber => {
+            subscriber.call(job, event);
+        })
+    }
+
     private __addJob(job: Job) {
         job.schedule(this);
         this._scheduledJobs.push(job);
@@ -31,9 +52,7 @@ export class Queue {
      */
     jobExecuted(job: Job) {
 
-        this.subscribers.forEach(subscriber => {
-            subscriber.call(job);
-        })
+        this.emit(job, EQueueEventType.JobExecuted);
 
         /**
          * todo - remover a task de _scheduledJobs

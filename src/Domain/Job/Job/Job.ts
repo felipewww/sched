@@ -2,14 +2,15 @@ import {IJobReq} from "@Domain/Job/Job/Contracts";
 import Timeout = NodeJS.Timeout;
 import {Queue} from "@Domain/Job/Queue/Queue";
 import {TaskEntity} from "@Domain/Job/Task/TaskEntity";
-import {JobDebugger} from "@Domain/Job/Queue/QueuesSingleton";
+import {IJobRaw} from "@Data/Source/Jobs/Contracts";
 
 export enum EJobStatus {
     Success = 0,
     Created = 1,
     Failed = 2,
     Running = 3,
-    Scheduled = 4
+    Scheduled = 4,
+    Canceled = 5,
 }
 
 export class Job {
@@ -70,22 +71,14 @@ export class Job {
 
     /**
      * Parses Job from Mongo result
-     * @param _scheduledTo
-     * @param _scheduledAt
-     * @param _params
-     * @param _id
+     * @param jobRaw
      */
-    public static parse(
-        _scheduledTo: string,
-        _scheduledAt: string,
-        _params: { [key:string]: any },
-        _id: any,
-    ) {
+    public static parse(jobRaw: IJobRaw) {
         return new Job(
-            new Date(_scheduledTo),
-            new Date(_scheduledAt),
-            _params,
-            _id
+            jobRaw.scheduledTo,
+            jobRaw.scheduledAt,
+            jobRaw.params,
+            jobRaw._id
         );
     }
 
@@ -104,12 +97,12 @@ export class Job {
             this._status = EJobStatus.Running;
             this._status = EJobStatus.Success;
 
-            JobDebugger.log(`job executed with success`.green.bold)
-            JobDebugger.log(this)
+            // JobDebugger.log(`job executed with success`.green.bold)
+            // JobDebugger.log(this)
         } catch (e) {
 
-            JobDebugger.log(`job executed with error`.red.bold)
-            JobDebugger.log(this)
+            // JobDebugger.log(`job executed with error`.red.bold)
+            // JobDebugger.log(this)
 
             if (this.tries.count < this.tries.max) {
                 this.tries.count++;
@@ -127,8 +120,6 @@ export class Job {
      * Only a Queue can schedule a Job
      */
     public schedule(queue: Queue) {
-        JobDebugger.log(`job scheduled`.green.bold)
-        JobDebugger.log(this)
         this._status = EJobStatus.Scheduled
         this._timeOut = setTimeout(async () => {
             await this.execute()
@@ -136,8 +127,11 @@ export class Job {
         }, this.delay())
     }
 
-    public cancel(queue: Queue) {
+    public cancel(): boolean {
+        clearTimeout(this._timeOut);
+        this._status = EJobStatus.Canceled;
 
+        return true;
     }
 
     get id() {
