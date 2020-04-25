@@ -1,15 +1,15 @@
-import {Job} from "@Domain/Job/Job/Job";
-import {Subscriber} from "@Domain/Job/Queue/Subscriber";
+import {Job} from "@Domain/JobScheduler/Job/Job";
+import {Subscriber} from "@Domain/JobScheduler/Queue/Subscriber";
 
 export enum EQueueEventType {
     JobExecuted = 0,
     JobCancelled = 1,
 }
 
-export class Queue {
+export class Queue<S extends Subscriber> {
 
     private readonly _scheduledJobs: Array<Job> = []
-    protected subscribers: Array<Subscriber<any>> = [];
+    protected subscribers: Array<S> = [];
 
     /**
      * Schedule a Job in memory using setTimeout
@@ -25,7 +25,7 @@ export class Queue {
         }
     }
 
-    removeJobById(id :string) {
+    cancelJobById(id :string) {
         for(let job of this._scheduledJobs) {
             if (job.id === id) {
                 job.cancel();
@@ -51,7 +51,6 @@ export class Queue {
      * @param job
      */
     jobExecuted(job: Job) {
-
         this.emit(job, EQueueEventType.JobExecuted);
 
         /**
@@ -60,7 +59,7 @@ export class Queue {
          */
     }
 
-    subscribe(subscriber: Subscriber<any>) {
+    subscribe(subscriber: S) {
         this.subscribers.push(subscriber);
     }
 }

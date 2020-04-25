@@ -1,4 +1,4 @@
-import {ITimeSpec} from "@Domain/Job/Job/Contracts";
+import {ITimeSpec} from "@Domain/JobScheduler/Job/Contracts";
 
 export class TimeSpecParser {
     public static toMilliseconds(timeSpec: ITimeSpec): number {

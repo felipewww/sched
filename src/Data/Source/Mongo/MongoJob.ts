@@ -1,6 +1,7 @@
 import {IJobRaw} from "@Data/Source/Jobs/Contracts";
 import {ObjectID, InsertOneWriteOpResult} from "mongodb";
 import {Mongo} from "@Data/Source/Mongo/Mongo";
+import {EFinishType} from "@Domain/JobScheduler/Job/Repositories/JobRepository";
 
 export class MongoJob extends Mongo {
 
@@ -38,6 +39,42 @@ export class MongoJob extends Mongo {
 
         const promiseInsert = conn
             .collection(this.collectionCancelledJobsName)
+            .insertOne(jobRawToMove)
+            .then();
+
+        const promiseDelete = conn.collection(this.collectionJobsName)
+            .deleteOne({ "_id": new ObjectID(jobId) })
+            .then()
+
+        Promise.all([promiseInsert, promiseDelete])
+            .finally(() => {
+                this.connection.close();
+            })
+    }
+
+    async finish(jobId: any, as: EFinishType) {
+        const conn = await this.db();
+
+        let collectionToMove: string;
+        switch (as) {
+            case EFinishType.Success:
+                collectionToMove = this.collectionFinishedJobsName;
+                break;
+
+            case EFinishType.Cancelled:
+                collectionToMove = this.collectionCancelledJobsName;
+                break;
+
+            case EFinishType.Failed:
+                collectionToMove = this.collectionFailedJobsName;
+                break;
+        }
+
+        const jobRawToMove = await conn.collection(this.collectionJobsName)
+            .findOne({ "_id": new ObjectID(jobId) })
+
+        const promiseInsert = conn
+            .collection(collectionToMove)
             .insertOne(jobRawToMove)
             .then();
 

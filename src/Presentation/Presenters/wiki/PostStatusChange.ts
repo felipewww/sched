@@ -1,12 +1,11 @@
 import {Presenter} from "@Presentation/Presenters/Presenter";
 import {HttpResponse} from "@Presentation/Contracts/Http";
 import {HttpResponseFactory} from "@Presentation/Utils/HttpResponse/HttpResponseFactory";
-import {Job} from "@Domain/Job/Job/Job";
-import {QueuesSingletonInstance} from "@Domain/Job/Queue/QueuesSingleton";
+import {Job} from "@Domain/JobScheduler/Job/Job";
+import {QueuesSingletonInstance} from "@Domain/JobScheduler/Queue/QueuesSingleton";
 
 export class PostStatusChange extends Presenter {
     async handle(): Promise<HttpResponse> {
-        // const wikiProducer = ProducersSingletonInstance.getById('wikiActivationProducer')
         const wikiProducer = QueuesSingletonInstance.getById('wikiActivationQueue')
 
         const params = {

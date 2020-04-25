@@ -1,8 +1,9 @@
-import {IJobReq} from "@Domain/Job/Job/Contracts";
+import {IJobReq} from "@Domain/JobScheduler/Job/Contracts";
 import Timeout = NodeJS.Timeout;
-import {Queue} from "@Domain/Job/Queue/Queue";
-import {TaskEntity} from "@Domain/Job/Task/TaskEntity";
+import {Queue} from "@Domain/JobScheduler/Queue/Queue";
+import {TaskEntity} from "@Domain/JobScheduler/Task/TaskEntity";
 import {IJobRaw} from "@Data/Source/Jobs/Contracts";
+import {Subscriber} from "@Domain/JobScheduler/Queue/Subscriber";
 
 export enum EJobStatus {
     Success = 0,
@@ -91,10 +92,12 @@ export class Job {
 
     async execute(): Promise<boolean> {
         try {
+            this._status = EJobStatus.Running;
+
             this.tasks.forEach((task: TaskEntity) => {
                 task.execute(this);
             })
-            this._status = EJobStatus.Running;
+
             this._status = EJobStatus.Success;
 
             // JobDebugger.log(`job executed with success`.green.bold)
@@ -119,7 +122,7 @@ export class Job {
     /**
      * Only a Queue can schedule a Job
      */
-    public schedule(queue: Queue) {
+    public schedule(queue: Queue<Subscriber>) {
         this._status = EJobStatus.Scheduled
         this._timeOut = setTimeout(async () => {
             await this.execute()

@@ -1,5 +1,5 @@
-import {TaskEntity} from "@Domain/Job/Task/TaskEntity";
-import {Job} from "@Domain/Job/Job/Job";
+import {TaskEntity} from "@Domain/JobScheduler/Task/TaskEntity";
+import {Job} from "@Domain/JobScheduler/Job/Job";
 
 export class WikiChangeStatusTask extends TaskEntity {
 
@@ -11,6 +11,10 @@ export class WikiChangeStatusTask extends TaskEntity {
     }
 
     execute(job: Job) {
-        console.log('Executing task '+this.name)
+        console.log(`Exec task ${this.name}`.random)
+        if (this.withError) {
+            console.log('TASK ERROR!'.bgRed.white.bold)
+            throw new Error('Fake error')
+        }
     }
 }

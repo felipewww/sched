@@ -1,13 +1,15 @@
-import {EQueueEventType, Queue} from "@Domain/Job/Queue/Queue";
-import {TimeSpecParser} from "@Domain/Job/Utils/TimeSpecParser";
-import {JobRepository} from "@Domain/Job/Job/Repositories/JobRepository";
-import {ITimeSpec} from "@Domain/Job/Job/Contracts";
-import {TaskEntity} from "@Domain/Job/Task/TaskEntity";
+import {EQueueEventType, Queue} from "@Domain/JobScheduler/Queue/Queue";
+import {TimeSpecParser} from "@Domain/JobScheduler/Utils/TimeSpecParser";
+import {EFinishType, JobRepository} from "@Domain/JobScheduler/Job/Repositories/JobRepository";
+import {ITimeSpec} from "@Domain/JobScheduler/Job/Contracts";
+import {TaskEntity} from "@Domain/JobScheduler/Task/TaskEntity";
 import {MongoJob} from "@Data/Source/Mongo/MongoJob";
+import {EJobStatus, Job} from "@Domain/JobScheduler/Job/Job";
+import {SubscriberMongo} from "@Domain/JobScheduler/Queue/Subscriber";
 import Timeout = NodeJS.Timeout;
-import {Job} from "@Domain/Job/Job/Job";
 
-export class MongoQueue extends Queue {
+export class MongoQueue extends Queue<SubscriberMongo> {
+
     private _initialized: boolean = false;
 
     protected _timeOut: Timeout;
@@ -37,10 +39,10 @@ export class MongoQueue extends Queue {
     /**
      * Start a producer for DB searches based on timeout and queue feed
      */
-    public async init() {
+    public init() {
         if (!this._initialized) {
             this._initialized = true;
-            await this.findJobs();
+            this.findJobs();
         }
 
         return this;
@@ -69,7 +71,7 @@ export class MongoQueue extends Queue {
 
         if (this.avoidWatchNullCollection) {
             if (!jobs.length) {
-                // // JobDebugger.log('findJobs - nenhum job no banco, aguardar o addJob do producer'.yellow.bold)
+                // JobDebugger.log('findJobs - nenhum job no banco, aguardar o addJob do producer'.yellow.bold)
                 clearTimeout(this._timeOut);
                 return;
             } else {
@@ -115,10 +117,10 @@ export class MongoQueue extends Queue {
         return jobStored;
     }
 
-    public async removeJobById(id: string): Promise<any> {
+    public async cancelJobById(id: string): Promise<any> {
         let job = await this._repo.findById(id);
 
-        super.removeJobById(id);
+        super.cancelJobById(id);
 
         return job;
     }
@@ -131,34 +133,42 @@ export class MongoQueue extends Queue {
         return job.delay() < this._refreshTimeParsed
     }
 
-    // TODO - esse evento deve ser feito externamente, or subscriber??
-    // talvez não, pode ter uma opção para armazenar jobs cancelados ou nao
     protected emit(job: Job, event: EQueueEventType) {
 
         switch (event) {
             case EQueueEventType.JobCancelled:
-                // todo - inserir em cancelados
-                console.log('CANCELLED!!!'.bgRed.white.bold);
-                this._repo.cancel(job.id)
-                    .then(res => {
-                        console.log('success while delete'.green.bold)
-                        console.log(res)
-                    })
-                    .catch(err => {
-                        console.log('err while delete'.red.bold)
-                        console.log(err)
-                    })
+                this.move(job, EFinishType.Cancelled);
                 break;
 
             case EQueueEventType.JobExecuted:
-                this.finishJob();
+
+                switch (job.status) {
+                    case EJobStatus.Success:
+                        this.move(job, EFinishType.Success);
+                        break;
+
+                    case EJobStatus.Failed:
+                        this.move(job, EFinishType.Failed);
+                        break;
+                }
+
                 break;
         }
 
         super.emit(job, event);
     }
 
-    private finishJob() {
-
+    private move(job: Job, as: EFinishType) {
+        this._repo.finish(job.id, as)
+            .then(() => {
+                this.subscribers.forEach(subscriber => {
+                    subscriber.onMove(job);
+                })
+            })
+            .catch(err => {
+                this.subscribers.forEach(subscriber => {
+                    subscriber.onMove(job, err);
+                })
+            })
     }
 }

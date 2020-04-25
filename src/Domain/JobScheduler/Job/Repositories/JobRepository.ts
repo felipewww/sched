@@ -1,6 +1,12 @@
-import {Job} from "@Domain/Job/Job/Job";
+import {Job} from "@Domain/JobScheduler/Job/Job";
 import {IJobRaw} from "@Data/Source/Jobs/Contracts";
 import {MongoJob} from "@Data/Source/Mongo/MongoJob";
+
+export enum EFinishType {
+    Success = 0,
+    Failed = 1,
+    Cancelled = 2,
+}
 
 export class JobRepository {
     constructor(
@@ -50,7 +56,16 @@ export class JobRepository {
         return result;
     }
 
-    async cancel(jobId: any) {
-        return this.model.cancel(jobId);
+    async finish(jobId: any, as: EFinishType) {
+        return this.model.finish(jobId, as);
     }
+
+    // async cancel(jobId: any) {
+    //     // return this.model.finish(jobId, 'cancelled');
+    //     return this.model.cancel(jobId);
+    // }
+
+    // async finishAsSucceed(jobId: any) {
+    //
+    // }
 }
