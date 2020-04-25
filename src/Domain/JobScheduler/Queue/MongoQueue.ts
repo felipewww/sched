@@ -6,6 +6,7 @@ import {TaskEntity} from "@Domain/JobScheduler/Task/TaskEntity";
 import {MongoJob} from "@Data/Source/Mongo/MongoJob";
 import {EJobStatus, Job} from "@Domain/JobScheduler/Job/Job";
 import {SubscriberMongo} from "@Domain/JobScheduler/Queue/Subscriber";
+import {JobDebugger} from "@Domain/JobScheduler/Queue/QueuesSingleton";
 import Timeout = NodeJS.Timeout;
 
 export class MongoQueue extends Queue<SubscriberMongo> {
@@ -39,10 +40,10 @@ export class MongoQueue extends Queue<SubscriberMongo> {
     /**
      * Start a producer for DB searches based on timeout and queue feed
      */
-    public init() {
+    public async init() {
         if (!this._initialized) {
             this._initialized = true;
-            this.findJobs();
+            await this.findJobs();
         }
 
         return this;
@@ -69,19 +70,22 @@ export class MongoQueue extends Queue<SubscriberMongo> {
             super.addJob(job)
         })
 
-        if (this.avoidWatchNullCollection) {
-            if (!jobs.length) {
-                // JobDebugger.log('findJobs - nenhum job no banco, aguardar o addJob do producer'.yellow.bold)
-                clearTimeout(this._timeOut);
-                return;
-            } else {
-                // JobDebugger.log('findJobs - haviam jobs na fila, agendar proxima consulta ao banco'.green.bold)
-                this.setTimeout();
-            }
-        } else {
-            // JobDebugger.log('findJobs - redefinir timeout independente se houver ou não resultados no banco!!!'.magenta.bold)
-            this.setTimeout();
-        }
+        this.setTimeout();
+
+        // todo - mesmo adicionando job, se ele estiver além do proximo tick, vai zerar o timeout...
+        // if (this.avoidWatchNullCollection) {
+        //     if (!jobs.length) {
+        //         JobDebugger.log('findJobs - nenhum job no banco, aguardar o addJob do producer'.yellow.bold)
+        //         clearTimeout(this._timeOut);
+        //         return;
+        //     } else {
+        //         JobDebugger.log('findJobs - haviam jobs na fila, agendar proxima consulta ao banco'.green.bold)
+        //         this.setTimeout();
+        //     }
+        // } else {
+        //     JobDebugger.log('findJobs - redefinir timeout independente se houver ou não resultados no banco!!!'.magenta.bold)
+        //     this.setTimeout();
+        // }
     }
 
     /**
@@ -102,14 +106,14 @@ export class MongoQueue extends Queue<SubscriberMongo> {
         const jobStored: Job = await this._repo.store(job);
 
         if (this.isWithinCurrentTick(job)) {
-            // JobDebugger.log('addJob - o job adicionado deverá ser executado dentro do timeout ja definido'.yellow.bold)
+            JobDebugger.log('addJob - o job adicionado deverá ser executado dentro do timeout ja definido'.yellow.bold)
             jobStored.tasks = this.tasks;
             super.addJob(jobStored);
         } else {
 
-            // JobDebugger.log('addJob - o job será salvo no banco e executado mais tarde'.yellow.bold)
+            JobDebugger.log('addJob - o job será salvo no banco e executado mais tarde'.yellow.bold)
             if (!this._timeOut) {
-                // JobDebugger.log('addJob - não havia timeout pois estava sem resultados no banco, definir novamente!'.cyan.bold)
+                JobDebugger.log('addJob - não havia timeout pois estava sem resultados no banco, definir novamente!'.cyan.bold)
                 this.setTimeout();
             }
         }
@@ -118,7 +122,10 @@ export class MongoQueue extends Queue<SubscriberMongo> {
     }
 
     public async cancelJobById(id: string): Promise<any> {
+        console.log(`trying to cancel job ${id}`.red.bold)
         let job = await this._repo.findById(id);
+        this.move(job, EFinishType.Cancelled);
+        // await this._repo.finish(id, EFinishType.Cancelled);
 
         super.cancelJobById(id);
 

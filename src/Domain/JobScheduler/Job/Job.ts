@@ -4,6 +4,7 @@ import {Queue} from "@Domain/JobScheduler/Queue/Queue";
 import {TaskEntity} from "@Domain/JobScheduler/Task/TaskEntity";
 import {IJobRaw} from "@Data/Source/Jobs/Contracts";
 import {Subscriber} from "@Domain/JobScheduler/Queue/Subscriber";
+import {JobDebugger} from "@Domain/JobScheduler/Queue/QueuesSingleton";
 
 export enum EJobStatus {
     Success = 0,
@@ -70,6 +71,8 @@ export class Job {
         );
     }
 
+    // todo - definir overload method passando outro tipo de parametro para create (podendo se rum objeto de data)
+
     /**
      * Parses Job from Mongo result
      * @param jobRaw
@@ -100,12 +103,12 @@ export class Job {
 
             this._status = EJobStatus.Success;
 
-            // JobDebugger.log(`job executed with success`.green.bold)
-            // JobDebugger.log(this)
+            JobDebugger.log(`job executed with success`.green.bold)
+            JobDebugger.log(this)
         } catch (e) {
 
-            // JobDebugger.log(`job executed with error`.red.bold)
-            // JobDebugger.log(this)
+            JobDebugger.log(`job executed with error`.red.bold)
+            JobDebugger.log(this)
 
             if (this.tries.count < this.tries.max) {
                 this.tries.count++;

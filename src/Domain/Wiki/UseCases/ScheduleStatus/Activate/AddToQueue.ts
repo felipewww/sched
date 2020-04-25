@@ -21,17 +21,23 @@ export class AddToQueue {
 
     async handle() {
         // this.cancelTest();
-        this.addTest();
+        // this.addTest();
     }
 
+    /**
+     * teste 1
+     */
     async addTest() {
-        await this.addJobFake('2020-04-25 12:40:01')
+        await this.addJobFake('2020-04-25 13:19:01')
         // this.queue.addJob();
     }
 
+    /**
+     * teste 2
+     */
     cancelTest() {
         setTimeout(async () => {
-            const jobAdded = await this.addJobFake('2020-04-23 11:14:01');
+            const jobAdded = await this.addJobFake('2020-04-25 18:00:01');
 
             setTimeout(() => {
                 this.queue.cancelJobById(jobAdded.id);
@@ -40,12 +46,30 @@ export class AddToQueue {
         }, 1000)
 
         setTimeout(async () => {
-            const jobAdded = await this.addJobFake('2020-04-23 13:28:01');
+            const jobAdded = await this.addJobFake('2020-04-25 22:00:01');
 
             setTimeout(() => {
                 this.queue.cancelJobById(jobAdded.id);
             }, 9000)
 
         }, 6000)
+    }
+
+    async teste3() {
+        const jobAdded = await this.addJobFake('2020-04-25 13:48:01');
+
+        // cancelar 5 segundos após add
+        setTimeout(() => {
+            this.queue.cancelJobById(jobAdded.id);
+        }, 5000)
+    }
+
+    async teste6() {
+        const jobAdded = await this.addJobFake('2020-04-25 11:48:01');
+
+        // cancelar 5 segundos após add
+        setTimeout(() => {
+            this.queue.cancelJobById(jobAdded.id);
+        }, 5000)
     }
 }

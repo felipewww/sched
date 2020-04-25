@@ -28,11 +28,15 @@ export class Queue<S extends Subscriber> {
     cancelJobById(id :string) {
         for(let job of this._scheduledJobs) {
             if (job.id === id) {
-                job.cancel();
-                this.emit(job, EQueueEventType.JobCancelled);
+                // todo - precisa fazer algo aqui?
+                // job.cancel();
+                // this.emit(job, EQueueEventType.JobCancelled);
                 break;
             }
         }
+
+        // job.cancel();
+        // this.emit(job, EQueueEventType.JobCancelled);
     }
 
     protected emit(job: Job, event: EQueueEventType) {
