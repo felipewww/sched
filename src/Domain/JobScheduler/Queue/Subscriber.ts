@@ -1,5 +1,6 @@
 import {Job} from "@Domain/JobScheduler/Job/Job";
-import {EQueueEventType, Queue} from "@Domain/JobScheduler/Queue/Queue";
+import {Queue} from "@Domain/JobScheduler/Queue/Queue";
+import {EQueueEventType} from "@Domain/JobScheduler/Queue/Contracts";
 
 export abstract class Subscriber {
 
@@ -9,14 +10,6 @@ export abstract class Subscriber {
      * @param event
      */
     public abstract call(job: Job, event: EQueueEventType): void;
-
-    // /**
-    //  * Subscribe to a queue for watch all jobs finished events
-    //  * @param queue
-    //  */
-    // public subscribe(queue: Queue<Subscriber>): void {
-    //     queue.subscribe(this);
-    // };
 }
 
 export abstract class SubscriberMongo extends Subscriber {

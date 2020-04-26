@@ -1,6 +1,7 @@
 import {SubscriberMongo} from "@Domain/JobScheduler/Queue/Subscriber";
-import {EJobStatus, Job} from "@Domain/JobScheduler/Job/Job";
-import {EQueueEventType} from "@Domain/JobScheduler/Queue/Queue";
+import {Job} from "@Domain/JobScheduler/Job/Job";
+import {EQueueEventType} from "@Domain/JobScheduler/Queue/Contracts";
+import {EJobStatus} from "@Domain/JobScheduler/Job/Contracts";
 
 export class WikiStatusSubscriber extends SubscriberMongo {
     call(job: Job, eventType: EQueueEventType): void {

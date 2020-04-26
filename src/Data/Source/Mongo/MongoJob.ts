@@ -1,7 +1,7 @@
 import {IJobRaw} from "@Data/Source/Jobs/Contracts";
 import {ObjectID, InsertOneWriteOpResult} from "mongodb";
 import {Mongo} from "@Data/Source/Mongo/Mongo";
-import {EFinishType} from "@Domain/JobScheduler/Job/Repositories/JobRepository";
+import {EJobStatus} from "@Domain/JobScheduler/Job/Contracts";
 
 export class MongoJob extends Mongo {
 
@@ -52,20 +52,20 @@ export class MongoJob extends Mongo {
             })
     }
 
-    async finish(jobId: any, as: EFinishType) {
+    async finish(jobId: any, as: EJobStatus) {
         const conn = await this.db();
 
         let collectionToMove: string;
         switch (as) {
-            case EFinishType.Success:
+            case EJobStatus.Success:
                 collectionToMove = this.collectionFinishedJobsName;
                 break;
 
-            case EFinishType.Cancelled:
+            case EJobStatus.Cancelled:
                 collectionToMove = this.collectionCancelledJobsName;
                 break;
 
-            case EFinishType.Failed:
+            case EJobStatus.Failed:
                 collectionToMove = this.collectionFailedJobsName;
                 break;
         }

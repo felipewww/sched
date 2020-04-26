@@ -1,19 +1,10 @@
-import {IJobReq} from "@Domain/JobScheduler/Job/Contracts";
+import {EJobStatus, IJobReq} from "@Domain/JobScheduler/Job/Contracts";
 import Timeout = NodeJS.Timeout;
 import {Queue} from "@Domain/JobScheduler/Queue/Queue";
 import {TaskEntity} from "@Domain/JobScheduler/Task/TaskEntity";
 import {IJobRaw} from "@Data/Source/Jobs/Contracts";
 import {Subscriber} from "@Domain/JobScheduler/Queue/Subscriber";
 import {JobDebugger} from "@Domain/JobScheduler/Queue/QueuesSingleton";
-
-export enum EJobStatus {
-    Success = 0,
-    Created = 1,
-    Failed = 2,
-    Running = 3,
-    Scheduled = 4,
-    Canceled = 5,
-}
 
 export class Job {
 
@@ -135,7 +126,7 @@ export class Job {
 
     public cancel(): boolean {
         clearTimeout(this._timeOut);
-        this._status = EJobStatus.Canceled;
+        this._status = EJobStatus.Cancelled;
 
         return true;
     }

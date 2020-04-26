@@ -1,13 +1,14 @@
-import {EQueueEventType, Queue} from "@Domain/JobScheduler/Queue/Queue";
+import {Queue} from "@Domain/JobScheduler/Queue/Queue";
 import {TimeSpecParser} from "@Domain/JobScheduler/Utils/TimeSpecParser";
-import {EFinishType, JobRepository} from "@Domain/JobScheduler/Job/Repositories/JobRepository";
-import {ITimeSpec} from "@Domain/JobScheduler/Job/Contracts";
+import {JobRepository} from "@Domain/JobScheduler/Job/Repositories/JobRepository";
+import {EJobStatus, ITimeSpec} from "@Domain/JobScheduler/Job/Contracts";
 import {TaskEntity} from "@Domain/JobScheduler/Task/TaskEntity";
 import {MongoJob} from "@Data/Source/Mongo/MongoJob";
-import {EJobStatus, Job} from "@Domain/JobScheduler/Job/Job";
+import {Job} from "@Domain/JobScheduler/Job/Job";
 import {SubscriberMongo} from "@Domain/JobScheduler/Queue/Subscriber";
 import {JobDebugger} from "@Domain/JobScheduler/Queue/QueuesSingleton";
 import Timeout = NodeJS.Timeout;
+import {EQueueEventType} from "@Domain/JobScheduler/Queue/Contracts";
 
 export class MongoQueue extends Queue<SubscriberMongo> {
 
@@ -71,21 +72,6 @@ export class MongoQueue extends Queue<SubscriberMongo> {
         })
 
         this.setTimeout();
-
-        // todo - mesmo adicionando job, se ele estiver além do proximo tick, vai zerar o timeout...
-        // if (this.avoidWatchNullCollection) {
-        //     if (!jobs.length) {
-        //         JobDebugger.log('findJobs - nenhum job no banco, aguardar o addJob do producer'.yellow.bold)
-        //         clearTimeout(this._timeOut);
-        //         return;
-        //     } else {
-        //         JobDebugger.log('findJobs - haviam jobs na fila, agendar proxima consulta ao banco'.green.bold)
-        //         this.setTimeout();
-        //     }
-        // } else {
-        //     JobDebugger.log('findJobs - redefinir timeout independente se houver ou não resultados no banco!!!'.magenta.bold)
-        //     this.setTimeout();
-        // }
     }
 
     /**
@@ -124,8 +110,8 @@ export class MongoQueue extends Queue<SubscriberMongo> {
     public async cancelJobById(id: string): Promise<any> {
         console.log(`trying to cancel job ${id}`.red.bold)
         let job = await this._repo.findById(id);
-        this.move(job, EFinishType.Cancelled);
-        // await this._repo.finish(id, EFinishType.Cancelled);
+
+        this.move(job, EJobStatus.Cancelled);
 
         super.cancelJobById(id);
 
@@ -144,18 +130,18 @@ export class MongoQueue extends Queue<SubscriberMongo> {
 
         switch (event) {
             case EQueueEventType.JobCancelled:
-                this.move(job, EFinishType.Cancelled);
+                this.move(job, EJobStatus.Cancelled);
                 break;
 
             case EQueueEventType.JobExecuted:
 
                 switch (job.status) {
                     case EJobStatus.Success:
-                        this.move(job, EFinishType.Success);
+                        this.move(job, EJobStatus.Success);
                         break;
 
                     case EJobStatus.Failed:
-                        this.move(job, EFinishType.Failed);
+                        this.move(job, EJobStatus.Failed);
                         break;
                 }
 
@@ -165,7 +151,7 @@ export class MongoQueue extends Queue<SubscriberMongo> {
         super.emit(job, event);
     }
 
-    private move(job: Job, as: EFinishType) {
+    private move(job: Job, as: EJobStatus) {
         this._repo.finish(job.id, as)
             .then(() => {
                 this.subscribers.forEach(subscriber => {

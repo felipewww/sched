@@ -1,10 +1,6 @@
 import {Job} from "@Domain/JobScheduler/Job/Job";
 import {Subscriber} from "@Domain/JobScheduler/Queue/Subscriber";
-
-export enum EQueueEventType {
-    JobExecuted = 0,
-    JobCancelled = 1,
-}
+import {EQueueEventType} from "@Domain/JobScheduler/Queue/Contracts";
 
 export class Queue<S extends Subscriber> {
 
@@ -29,14 +25,11 @@ export class Queue<S extends Subscriber> {
         for(let job of this._scheduledJobs) {
             if (job.id === id) {
                 // todo - precisa fazer algo aqui?
-                // job.cancel();
-                // this.emit(job, EQueueEventType.JobCancelled);
+                job.cancel();
+                this.emit(job, EQueueEventType.JobCancelled);
                 break;
             }
         }
-
-        // job.cancel();
-        // this.emit(job, EQueueEventType.JobCancelled);
     }
 
     protected emit(job: Job, event: EQueueEventType) {
