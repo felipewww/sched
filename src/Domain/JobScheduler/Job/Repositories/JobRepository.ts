@@ -1,7 +1,6 @@
 import {Job} from "@Domain/JobScheduler/Job/Job";
-import {IJobRaw} from "@Data/Source/Jobs/Contracts";
 import {MongoJob} from "@Data/Source/Mongo/MongoJob";
-import {EJobStatus} from "@Domain/JobScheduler/Job/Contracts";
+import {EJobStatus, IJobRaw} from "@Domain/JobScheduler/Job/Contracts";
 
 export class JobRepository {
     constructor(

@@ -1,8 +1,7 @@
-import {EJobStatus, IJobReq} from "@Domain/JobScheduler/Job/Contracts";
+import {EJobStatus, IJobRaw, IJobReq} from "@Domain/JobScheduler/Job/Contracts";
 import Timeout = NodeJS.Timeout;
 import {Queue} from "@Domain/JobScheduler/Queue/Queue";
 import {TaskEntity} from "@Domain/JobScheduler/Task/TaskEntity";
-import {IJobRaw} from "@Data/Source/Jobs/Contracts";
 import {Subscriber} from "@Domain/JobScheduler/Queue/Subscriber";
 import {JobDebugger} from "@Domain/JobScheduler/Queue/QueuesSingleton";
 

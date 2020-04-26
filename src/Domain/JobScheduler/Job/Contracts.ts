@@ -1,3 +1,10 @@
+export interface IJobRaw {
+    _id: any;
+    scheduledTo: Date,
+    scheduledAt: Date,
+    params: { [key: string]: any }
+}
+
 export interface IJobReq {
     scheduledTo: string;
     params: { [key:string]: any }, // todo, tipar o objeto corretamente para cada tipo de request

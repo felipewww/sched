@@ -1,7 +1,6 @@
-import {IJobRaw} from "@Data/Source/Jobs/Contracts";
 import {ObjectID, InsertOneWriteOpResult} from "mongodb";
 import {Mongo} from "@Data/Source/Mongo/Mongo";
-import {EJobStatus} from "@Domain/JobScheduler/Job/Contracts";
+import {EJobStatus, IJobRaw} from "@Domain/JobScheduler/Job/Contracts";
 
 export class MongoJob extends Mongo {
 
